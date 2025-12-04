@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { ProductGrid } from "@/components/products/ProductGrid";
+import { FallbackImage } from "@/components/ui/optimized-image";
 import { ArrowRight, Package } from "lucide-react";
 import { useLocale } from "@/contexts/LocaleContext";
 import { getLocalizedContent } from "@/lib/utils";
@@ -19,28 +19,6 @@ interface Category {
   description_ko: string | null;
   image_url: string | null;
   product_count: number;
-}
-
-function CategoryImage({ src, alt }: { src: string | null; alt: string }) {
-  const [error, setError] = useState(false);
-  
-  if (!src || error) {
-    return (
-      <div className="w-full h-full flex items-center justify-center bg-muted">
-        <Package className="w-8 h-8 text-muted-foreground/30" />
-      </div>
-    );
-  }
-  
-  return (
-    <Image
-      src={src}
-      alt={alt}
-      fill
-      className="object-cover group-hover:scale-105 transition-transform duration-300"
-      onError={() => setError(true)}
-    />
-  );
 }
 
 interface ProductImage {
@@ -105,12 +83,15 @@ export default function HomePage() {
       {/* Hero Section */}
       <section className="relative h-[400px] md:h-[480px] overflow-hidden">
         {/* Banner Image - Background */}
-        <Image
+        <FallbackImage
           src="/images/banner.jpeg"
+          fallbackSrc="/images/banner.jpeg"
           alt="Sunnyshoes Banner"
           fill
           className="object-cover object-center"
-          priority
+          imageSize="large"
+          sizes="100vw"
+          showPlaceholder={false}
         />
         {/* Dark overlay for text readability */}
         <div className="absolute inset-0 bg-black/40" />
@@ -161,7 +142,23 @@ export default function HomePage() {
                   return (
                     <Link key={category.id} href={`/products?category=${category.id}`}>
                       <div className="group relative aspect-square rounded-lg overflow-hidden bg-secondary">
-                        <CategoryImage src={category.image_url} alt={catName} />
+                        {category.image_url ? (
+                          <FallbackImage
+                            src={category.image_url}
+                            fallbackSrc={category.image_url}
+                            alt={catName}
+                            fill
+                            className="object-cover group-hover:scale-105 transition-transform duration-300"
+                            imageSize="small"
+                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
+                            showPlaceholder={true}
+                            placeholderIconSize="md"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-muted">
+                            <Package className="w-8 h-8 text-muted-foreground/30" />
+                          </div>
+                        )}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                         <div className="absolute bottom-2 left-2 right-2 text-white">
                           <h3 className="font-medium text-sm">{catName}</h3>

@@ -6,6 +6,68 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+// 图片尺寸类型
+export type ImageSize = 'thumbnail' | 'small' | 'medium' | 'large' | 'original';
+
+// 从原始图片URL获取优化版本的URL
+export function getOptimizedImageUrl(url: string, size: ImageSize = 'medium'): string {
+  if (!url) return url;
+  
+  // 如果是外部URL，直接返回
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+  
+  // 检查是否已经是优化版本的URL（包含尺寸后缀）
+  const sizePattern = /-(thumbnail|small|medium|large|original)\.webp$/;
+  if (sizePattern.test(url)) {
+    // 已经是优化版本，替换为目标尺寸
+    return url.replace(sizePattern, `-${size}.webp`);
+  }
+  
+  // 检查文件扩展名
+  const extMatch = url.match(/\.([^.]+)$/);
+  if (!extMatch) return url;
+  
+  const ext = extMatch[1].toLowerCase();
+  const basePath = url.slice(0, -ext.length - 1); // 移除扩展名
+  
+  // 尝试返回优化版本的URL
+  return `${basePath}-${size}.webp`;
+}
+
+// 生成响应式图片srcSet
+export function generateSrcSet(url: string): string {
+  if (!url) return '';
+  
+  // 外部URL不处理
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return '';
+  }
+  
+  const sizes: { size: ImageSize; width: number }[] = [
+    { size: 'thumbnail', width: 200 },
+    { size: 'small', width: 400 },
+    { size: 'medium', width: 800 },
+    { size: 'large', width: 1200 },
+  ];
+  
+  return sizes
+    .map(({ size, width }) => `${getOptimizedImageUrl(url, size)} ${width}w`)
+    .join(', ');
+}
+
+// 根据显示尺寸选择最佳图片
+export function getBestImageSize(displayWidth: number): ImageSize {
+  // 考虑 2x 视网膜屏幕
+  const targetWidth = displayWidth * 2;
+  
+  if (targetWidth <= 200) return 'thumbnail';
+  if (targetWidth <= 400) return 'small';
+  if (targetWidth <= 800) return 'medium';
+  return 'large';
+}
+
 export function formatPrice(price: number): string {
   return new Intl.NumberFormat('zh-CN', {
     style: 'currency',

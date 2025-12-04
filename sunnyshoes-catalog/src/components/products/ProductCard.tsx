@@ -1,12 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { FallbackImage } from "@/components/ui/optimized-image";
 import { formatPrice, getLocalizedContent } from "@/lib/utils";
-import { Package } from "lucide-react";
 import { useLocale } from "@/contexts/LocaleContext";
-import { useState } from "react";
 
 interface ProductImage {
   id: string;
@@ -42,7 +40,6 @@ interface ProductCardProps {
 
 export function ProductCard({ product }: ProductCardProps) {
   const { t, locale } = useLocale();
-  const [imgError, setImgError] = useState(false);
   const primaryImage = product.images?.find((img) => img.is_primary) || product.images?.[0];
   const discount = product.original_price
     ? Math.round((1 - product.price / product.original_price) * 100)
@@ -57,20 +54,16 @@ export function ProductCard({ product }: ProductCardProps) {
       <div className="product-card group">
         {/* Image */}
         <div className="relative aspect-square overflow-hidden rounded-lg bg-secondary mb-3">
-          {primaryImage && !imgError ? (
-            <Image
-              src={primaryImage.url}
-              alt={primaryImage.alt_text || product.name}
-              fill
-              className="object-cover product-image"
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-              onError={() => setImgError(true)}
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-muted">
-              <Package className="w-12 h-12 text-muted-foreground/30" />
-            </div>
-          )}
+          <FallbackImage
+            src={primaryImage?.url}
+            fallbackSrc={primaryImage?.url}
+            alt={primaryImage?.alt_text || product.name}
+            fill
+            className="object-cover product-image"
+            imageSize="small"
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            placeholderIconSize="lg"
+          />
 
           {/* Badges */}
           <div className="absolute top-2 left-2 flex flex-col gap-1">

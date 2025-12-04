@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useState, use, useCallback } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatPrice, getLocalizedContent } from "@/lib/utils";
+import { FallbackImage } from "@/components/ui/optimized-image";
+import { formatPrice, getLocalizedContent, getOptimizedImageUrl } from "@/lib/utils";
 import { ChevronLeft, ChevronRight, Package, Eye, Check, AlertTriangle, XCircle } from "lucide-react";
 import { useLocale } from "@/contexts/LocaleContext";
 
@@ -146,13 +146,15 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
         <div className="space-y-3">
           <div className="relative aspect-square rounded-lg overflow-hidden bg-secondary">
             {images[selectedImage] && !imageErrors[selectedImage] ? (
-              <Image 
-                src={images[selectedImage].url} 
+              <FallbackImage 
+                src={images[selectedImage].url}
+                fallbackSrc={images[selectedImage].url}
                 alt={images[selectedImage].alt_text || product.name} 
                 fill 
                 className="object-cover" 
-                priority 
-                onError={() => handleImageError(selectedImage)}
+                imageSize="large"
+                sizes="(max-width: 768px) 100vw, 50vw"
+                onImageError={() => handleImageError(selectedImage)}
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-muted">
@@ -182,7 +184,16 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               {images.map((img, index) => (
                 <button key={img.id} onClick={() => setSelectedImage(index)} className={`relative w-16 h-16 rounded overflow-hidden flex-shrink-0 border-2 transition-colors ${selectedImage === index ? "border-foreground" : "border-transparent hover:border-muted-foreground"}`}>
                   {!imageErrors[index] ? (
-                    <Image src={img.url} alt="" fill className="object-cover" onError={() => handleImageError(index)} />
+                    <FallbackImage 
+                      src={img.url}
+                      fallbackSrc={img.url}
+                      alt="" 
+                      fill 
+                      className="object-cover" 
+                      imageSize="thumbnail"
+                      sizes="64px"
+                      onImageError={() => handleImageError(index)} 
+                    />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-muted">
                       <Package className="w-4 h-4 text-muted-foreground/30" />
